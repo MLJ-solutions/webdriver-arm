@@ -1,0 +1,108 @@
+name: build
+
+env:
+  IMAGE_NAME: ${{ github.repository }}/${{ github.ref_name }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      CHROMEDRIVER_VERSION:
+        description: "Chromedriver Version"
+        required: true
+        type: string
+      CHROMIUM_VERSION:
+        description: "Chromium Version"
+        required: true
+        type: string
+      DEBIAN_VERSION:
+        description: "Debian Version"
+        required: true
+        type: string
+        default: 'bullseye'
+      LATEST:
+        description: "Add latest tag"
+        required: true
+        type: boolean
+        default: false
+      PUSH:
+        description: "Push final image"
+        required: true
+        type: string
+        default: 'bullseye'
+
+jobs:
+  time:
+    runs-on: ubuntu-latest
+    outputs:
+      now: ${{ steps.time.outputs.now }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set time
+        id: time
+        run: echo "now=$(git log -1 --format=%cd --date=format:'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
+
+
+  build-and-push-image:
+    needs: [ time ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    env:
+      REGISTRY: docker.pkg.github.com
+
+    steps:
+      - name: Use manually defined versions
+        run: |
+          echo "CHROMEDRIVER_VERSION=${{ github.event.inputs.CHROMEDRIVER_VERSION }}" >> $GITHUB_ENV
+          echo "CHROMIUM_VERSION=${{ github.event.inputs.CHROMIUM_VERSION }}" >> $GITHUB_ENV
+          echo "DEBIAN_VERSION=${{ github.event.inputs.DEBIAN_VERSION }}" >> $GITHUB_ENV
+          echo "LATEST=${{ github.event.inputs.LATEST }}" >> $GITHUB_ENV
+          echo "PUSH=${{ github.event.inputs.PUSH }}" >> $GITHUB_ENV
+
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.ACTIONS_TOKEN || github.token }}
+          submodules: recursive
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.ACTIONS_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          tags: |
+            type=raw,0.0.${{ needs.time.outputs.now }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        if: ${{ env.LATEST }}
+        with:
+          tags: |
+            type=raw,latest
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: ${{ env.PUSH }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/arm64
+          build-args: |
+            CHROMEDRIVER_VERSION=${{ env.CHROMEDRIVER_VERSION }}
+            CHROMIUM_VERSION=${{ env.CHROMIUM_VERSION }}
+            DEBIAN_VERSION=${{ env.DEBIAN_VERSION }}
