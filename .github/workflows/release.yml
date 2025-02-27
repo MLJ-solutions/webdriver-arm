@@ -28,7 +28,7 @@ on:
 
 jobs:
   build-and-push-image:
-    runs-on: macos-latest
+    runs-on: ubuntu-24.04-arm
     permissions:
       contents: read
       packages: write
