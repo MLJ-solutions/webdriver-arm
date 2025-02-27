@@ -1,4 +1,5 @@
-name: build
+name: release
+run-name: "Release ${{ inputs.VERSION }} (Latest: ${{ inputs.ADD_LATEST }})"
 
 env:
   IMAGE_NAME: ${{ github.repository }}/${{ github.ref_name }}
@@ -53,17 +54,13 @@ jobs:
 
     env:
       REGISTRY: docker.pkg.github.com
+      CHROMEDRIVER_VERSION: ${{ github.event.inputs.CHROMEDRIVER_VERSION }}
+      CHROMIUM_VERSION: ${{ github.event.inputs.CHROMIUM_VERSION }}
+      DEBIAN_VERSION: ${{ github.event.inputs.DEBIAN_VERSION }}
+      LATEST: ${{ github.event.inputs.LATEST }}
+      PUSH: ${{ github.event.inputs.PUSH }}
 
     steps:
-      - name: Use manually defined versions
-        run: |
-          echo "CHROMEDRIVER_VERSION=${{ github.event.inputs.CHROMEDRIVER_VERSION }}" >> $GITHUB_ENV
-          echo "CHROMIUM_VERSION=${{ github.event.inputs.CHROMIUM_VERSION }}" >> $GITHUB_ENV
-          echo "DEBIAN_VERSION=${{ github.event.inputs.DEBIAN_VERSION }}" >> $GITHUB_ENV
-          echo "LATEST=${{ github.event.inputs.LATEST }}" >> $GITHUB_ENV
-          echo "PUSH=${{ github.event.inputs.PUSH }}" >> $GITHUB_ENV
-
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -79,18 +76,20 @@ jobs:
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
+        if: ${{ !env.LATEST }}
         uses: docker/metadata-action@v5
         with:
           tags: |
-            type=raw,0.0.${{ needs.time.outputs.now }}
+            type=raw,0.0.${{ env.CHROMIUM_VERSION }}
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-      - name: Extract metadata (tags, labels) for Docker
+      - name: Extract metadata (tags, labels) for Docker with latest tag
         id: meta
         uses: docker/metadata-action@v5
         if: ${{ env.LATEST }}
         with:
           tags: |
+            type=raw,0.0.${{ env.CHROMIUM_VERSION }}
             type=raw,latest
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
