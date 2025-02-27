@@ -27,8 +27,8 @@ on:
       PUSH:
         description: "Push final image"
         required: true
-        type: string
-        default: 'bullseye'
+        type: boolean
+        default: false
 
 jobs:
   time:
