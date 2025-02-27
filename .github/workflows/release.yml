@@ -2,7 +2,7 @@ name: release
 run-name: "Release ${{ inputs.CHROMIUM_VERSION }} (chromedriver: ${{ inputs.CHROMEDRIVER_VERSION }}) for (${{ inputs.DEBIAN_VERSION }}) with push: ${{ inputs.PUSH }}"
 
 env:
-  IMAGE_NAME: ${{ github.repository }}/${{ github.ref_name }}
+  IMAGE_NAME: ${{ github.repository }}
 
 on:
   workflow_dispatch:
