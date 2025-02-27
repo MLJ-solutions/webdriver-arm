@@ -1,8 +1,12 @@
 ARG DEBIAN_VERSION=bullseye
+
+FROM --platform=${BUILDPLATFORM} debian:${DEBIAN_VERSION}
+
 ARG CHROMEDRIVER_VERSION
 ARG CHROMIUM_VERSION
 
-FROM --platform=${BUILDPLATFORM} debian:${DEBIAN_VERSION}
+RUN test -n "$CHROMEDRIVER_VERSION" || (echo "ERROR: CHROMEDRIVER_VERSION is required" && exit 1)
+RUN test -n "$CHROMIUM_VERSION" || (echo "ERROR: CHROMIUM_VERSION is required" && exit 1)
 
 RUN apt update
 RUN apt -y upgrade
