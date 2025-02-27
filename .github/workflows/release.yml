@@ -1,5 +1,5 @@
 name: release
-run-name: "Release ${{ inputs.VERSION }} (Latest: ${{ inputs.ADD_LATEST }})"
+run-name: "Release ${{ inputs.CHROMIUM_VERSION }} (chromedriver: ${{ inputs.CHROMEDRIVER_VERSION }}) for (${{ inputs.DEBIAN_VERSION }}) with push: ${{ inputs.PUSH }}"
 
 env:
   IMAGE_NAME: ${{ github.repository }}/${{ github.ref_name }}
@@ -20,11 +20,6 @@ on:
         required: true
         type: string
         default: 'bullseye'
-      LATEST:
-        description: "Add latest tag"
-        required: true
-        type: boolean
-        default: false
       PUSH:
         description: "Push final image"
         required: true
@@ -32,21 +27,7 @@ on:
         default: false
 
 jobs:
-  time:
-    runs-on: ubuntu-latest
-    outputs:
-      now: ${{ steps.time.outputs.now }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set time
-        id: time
-        run: echo "now=$(git log -1 --format=%cd --date=format:'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
-
-
   build-and-push-image:
-    needs: [ time ]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -74,23 +55,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.ACTIONS_TOKEN }}
 
+      - name: Extract simplified CHROMIUM_VERSION
+        run: |
+          SIMPLIFIED_VERSION=$(echo "${{ env.CHROMIUM_VERSION }}" | sed -E 's/^([0-9]+\.[0-9]+).*/\1/')
+          echo "SIMPLIFIED_CHROMIUM_VERSION=$SIMPLIFIED_VERSION" >> $GITHUB_ENV
+
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        if: ${{ !env.LATEST }}
         uses: docker/metadata-action@v5
         with:
           tags: |
-            type=raw,0.0.${{ env.CHROMIUM_VERSION }}
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-
-      - name: Extract metadata (tags, labels) for Docker with latest tag
-        id: meta
-        uses: docker/metadata-action@v5
-        if: ${{ env.LATEST }}
-        with:
-          tags: |
-            type=raw,0.0.${{ env.CHROMIUM_VERSION }}
-            type=raw,latest
+            type=raw,${{ env.CHROMIUM_VERSION }}
+            type=raw,${{ env.SIMPLIFIED_CHROMIUM_VERSION }}
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
       - name: Build and push Docker image
