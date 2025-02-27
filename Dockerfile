@@ -2,7 +2,7 @@ ARG DEBIAN_VERSION=bullseye
 ARG CHROMEDRIVER_VERSION
 ARG CHROMIUM_VERSION
 
-FROM --platform=$BUILDPLATFORM debian:${VERSION}
+FROM --platform=${BUILDPLATFORM} debian:${DEBIAN_VERSION}
 
 RUN apt update
 RUN apt -y upgrade
