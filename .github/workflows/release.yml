@@ -1,5 +1,5 @@
 name: release
-run-name: "Release ${{ inputs.CHROMIUM_VERSION }} (chromedriver: ${{ inputs.CHROMEDRIVER_VERSION }}) for (${{ inputs.DEBIAN_VERSION }}) with push: ${{ inputs.PUSH }}"
+run-name: "Release ${{ inputs.CHROMIUM_VERSION }} (chromedriver: ${{ inputs.CHROMIUM_VERSION }}) for (${{ inputs.DEBIAN_VERSION }}) with push: ${{ inputs.PUSH }}"
 
 env:
   IMAGE_NAME: ${{ github.repository }}
@@ -7,10 +7,6 @@ env:
 on:
   workflow_dispatch:
     inputs:
-      CHROMEDRIVER_VERSION:
-        description: "Chromedriver Version"
-        required: true
-        type: string
       CHROMIUM_VERSION:
         description: "Chromium Version"
         required: true
@@ -35,7 +31,6 @@ jobs:
 
     env:
       REGISTRY: docker.pkg.github.com
-      CHROMEDRIVER_VERSION: ${{ github.event.inputs.CHROMEDRIVER_VERSION }}
       CHROMIUM_VERSION: ${{ github.event.inputs.CHROMIUM_VERSION }}
       DEBIAN_VERSION: ${{ github.event.inputs.DEBIAN_VERSION }}
       LATEST: ${{ github.event.inputs.LATEST }}
@@ -78,6 +73,5 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/arm64
           build-args: |
-            CHROMEDRIVER_VERSION=${{ env.CHROMEDRIVER_VERSION }}
             CHROMIUM_VERSION=${{ env.CHROMIUM_VERSION }}
             DEBIAN_VERSION=${{ env.DEBIAN_VERSION }}
