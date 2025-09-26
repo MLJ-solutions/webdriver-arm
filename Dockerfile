@@ -12,12 +12,12 @@ RUN apt update
 RUN apt -y upgrade
 RUN apt -y install ca-certificates tzdata locales
 RUN echo 'UTC' | tee /etc/timezone && dpkg-reconfigure -f noninteractive tzdata
-RUN apt install -y --no-install-recommends --no-install-suggests libnss3 p11-kit libgtk-3-0 libgl1-mesa-glx libegl1-mesa gsettings-desktop-schemas unzip
+RUN apt install -y --no-install-recommends --no-install-suggests libnss3 p11-kit libgtk-3-0 gsettings-desktop-schemas unzip
 RUN apt install -y curl gnupg wget
 RUN mkdir -p /var/lib/locales/supported.d/
 RUN grep UTF-8 /usr/share/i18n/SUPPORTED > /var/lib/locales/supported.d/all
 
-RUN apt install -y chromium=${CHROMIUM_VERSION} chromium-common=${CHROMIUM_VERSION} || (apt list -a chromium && exit 1)
+RUN apt install -y chromium-common=${CHROMIUM_VERSION} || (apt list -a chromium && exit 1)
 
 RUN wget https://github.com/electron/electron/releases/download/${CHROMEDRIVER_VERSION}/chromedriver-${CHROMEDRIVER_VERSION}-linux-arm64.zip
 RUN unzip chromedriver-${CHROMEDRIVER_VERSION}-linux-arm64.zip
