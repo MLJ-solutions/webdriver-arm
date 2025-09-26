@@ -45,7 +45,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.ACTIONS_TOKEN || github.token }}
+          token: ${{ github.token }}
           submodules: recursive
 
       - name: Log in to the Container registry
@@ -53,7 +53,7 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.ACTIONS_TOKEN }}
+          password: ${{ github.token }}
 
       - name: Extract simplified CHROMIUM_VERSION
         run: |
